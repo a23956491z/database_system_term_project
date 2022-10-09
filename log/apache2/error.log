@@ -1,0 +1,11 @@
+AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.25.0.2. Set the 'ServerName' directive globally to suppress this message
+[Sun Oct 09 05:35:21.552092 2022] [mpm_prefork:notice] [pid 1] AH00163: Apache/2.4.54 (Debian) PHP/8.0.24 configured -- resuming normal operations
+[Sun Oct 09 05:35:21.552146 2022] [core:notice] [pid 1] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Sun Oct 09 05:41:26.107514 2022] [mpm_prefork:notice] [pid 1] AH00170: caught SIGWINCH, shutting down gracefully
+AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.26.0.3. Set the 'ServerName' directive globally to suppress this message
+[Sun Oct 09 05:43:58.949218 2022] [mpm_prefork:notice] [pid 1] AH00163: Apache/2.4.54 (Debian) PHP/8.0.24 configured -- resuming normal operations
+[Sun Oct 09 05:43:58.949278 2022] [core:notice] [pid 1] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Sun Oct 09 05:46:41.505829 2022] [mpm_prefork:notice] [pid 1] AH00170: caught SIGWINCH, shutting down gracefully
+AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.26.0.3. Set the 'ServerName' directive globally to suppress this message
+[Sun Oct 09 05:47:24.078443 2022] [mpm_prefork:notice] [pid 1] AH00163: Apache/2.4.54 (Debian) PHP/8.0.24 configured -- resuming normal operations
+[Sun Oct 09 05:47:24.078553 2022] [core:notice] [pid 1] AH00094: Command line: 'apache2 -D FOREGROUND'
