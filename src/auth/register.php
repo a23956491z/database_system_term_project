@@ -32,7 +32,7 @@
                     return $this->define_error_msg["EMAIL_EXIST"];
                 }
             }
-            return $this->failed_msg;
+            return "";
         }
         
         private function _register($username, $password, $email){
@@ -128,7 +128,6 @@
             <input type="submit"> <a href="/auth/login.php"> Back to Login</a>  
         </form>
 
-        <h1>Your data</h1>
         <?php
  
             $register_helper = new Register();
@@ -142,11 +141,10 @@
                 $password2= $_POST["repeat_password"]   ?? "" ;
                 $email     = $_POST["email"]    ?? "" ;
     
-                echo "username:".($username)."<br>";
-                echo "password:".($password)."<br>";
-                echo "repeat_password:".($password2)."<br>";
-                echo "email:".($email)."<br>";
-    
+                // echo "username:".($username)."<br>";
+                // echo "password:".($password)."<br>";
+                // echo "repeat_password:".($password2)."<br>";
+                // echo "email:".($email)."<br>";
                 echo "<br><h3>";
 
                 // First part : static check

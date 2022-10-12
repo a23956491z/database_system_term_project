@@ -196,8 +196,40 @@ foreach ($users as $user) {
 
 # Constructing PHP part
 
+## Auth : Database
+### Database with user data
+
+To store the data of this web app, we create a database call `dinner_picker` in mysql.
+
+The first table of this database is `user` table with following attributes:
+* User id : unsigned int with auto increament which is also a **primary key**
+* Username : varchar with max length 30 and **cannot be null**
+* Password : varchar with max length 30 and **cannot be null**
+* Email : varchar with max length 50 and **cannot be null**
+* Register date : with CURRENT_TIMESTAMP when create the account.
+
+The SQL query to create the table is this
+```sql
+CREATE TABLE users (
+  id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(30) NOT NULL,
+  password VARCHAR(30) NOT NULL,
+  email VARCHAR(50) NOT NULL,
+  reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+```
+
+Before we interact with database, we should create a account for this web app to access the db data.
+
+We add a user named "web_basic_client" to operate the login and register function in phpmyadmin interface.
+This user have permission with `SELECT` and `INSERT` to data table.
+
+![](https://i.imgur.com/RodV2Gg.png)
+
 ## Auth : Register 
 
+
+### Basic form and POST
 We create a php file `/auth/register.php` to handle registering.
 We write a simple form to get register data.
 ```html
@@ -225,3 +257,160 @@ echo "email:".($_POST["email"]                      ?? "" )."<br>";
 
 So our register page is look like this currently.
 ![](https://i.imgur.com/yHG4Uu1.png)
+
+### Check with field data
+
+
+We do the following check to our field data before send the data to database.
+* Check the field `username` is empty or not
+* Check the field `password_1` and `password_2` is empty or not
+* Check the field `email` is empty or not
+* Check the `password_1` and `password_2` is equal(the same) or not.
+
+```php
+function register_data_static_check($username, $password_1, $password_2, $email){
+    
+    $define_error_msg["PASSWORD_NOT_MATCH"] = "Password and Repeat Password didn't match.";
+    $define_error_msg["PASSWORD_EMPTY"] = "Password field is empty !";
+    $define_error_msg["USERNAME_EMPTY"] = "Username field is empty !";
+    $define_error_msg["EMAIL_EMPTY"] = "Email field is mepty !";
+
+    $error_msg = "";
+
+    // check empty
+    if (empty($username)){
+        $error_msg = $define_error_msg["USERNAME_EMPTY"];
+    }
+    if (empty($password_1) || empty($password_2)){
+        $error_msg = $define_error_msg["PASSWORD_EMPTY"];
+    }
+    if (empty($email)){
+        $error_msg = $define_error_msg["EMAIL_EMPTY"];
+    }
+
+    // check password match
+    if ($password_1 != $password_2){
+        $error_msg = $define_error_msg["PASSWORD_NOT_MATCH"];
+    }
+
+    return $error_msg;
+}
+```
+
+A sample of error message might look like this.
+![](https://i.imgur.com/0ILtWBs.png)
+
+
+
+### Check exsitance of data in database
+
+
+We do following check before insert the user data into database.
+* Check the username is exists or not.
+* Check the email is exists or not.
+
+After these checks are passed, we can finally insert the user data into the database.
+```php
+Class Register{
+
+    private $conn;
+    private $define_error_msg;
+
+    // return 1 if the check passed.
+    private function _checker_username_exists($username){
+
+        $sql = sprintf("SELECT username FROM users WHERE username = '%s'" , $username);
+
+        if ($result = $this->conn->query($sql)) {
+
+            if ($result->num_rows > 0) {
+
+                return $this->define_error_msg["USERNAME_EXIST"];
+            }
+        }
+        return "";
+    }
+
+    private function _checker_email_exists($email){
+
+        $sql = sprintf("SELECT username FROM users WHERE email = '%s'" , $email);
+
+        if ($result = $this->conn->query($sql)) {
+
+            if ($result->num_rows > 0) {
+
+                return $this->define_error_msg["EMAIL_EXIST"];
+            }
+        }
+        return $this->failed_msg;
+    }
+    
+    private function _register($username, $password, $email){
+        $sql = sprintf("INSERT INTO users(username, password, email) VALUES('%s', '%s', '%s')",
+                    $username, $password, $email);
+        
+        if ($this->conn->query($sql) === TRUE){
+            echo $this->sucessful_msg;
+        }
+        return "";
+    }
+    function __construct() {
+        $this->check_state = 0;
+        $this->conn = connect_to_db();
+        
+        $this->define_error_msg["USERNAME_EXIST"] = "Username is already exists.";
+        $this->define_error_msg["EMAIL_EXIST"] = "Email is aleardy exists..";
+        $this->sucessful_msg = "Register Sucessfully !";
+        $this->failed_msg = "Register Failed by unknowed reason !"; 
+    }
+```
+
+A sample of error message may look like this.
+![](https://i.imgur.com/INsDKu6.png)
+
+## Auth : Login
+
+### A basic Login page
+
+This class is similar to the `Register` class but without check function.
+We select the password field by username in table and check the password is equal to the password user submited.
+
+In these page, we only show the login is success or not without provide the detail error message.
+```php
+class Login{
+
+    private $conn;
+
+    function __construct(){
+        $this->conn  = connect_to_db();
+    }
+
+    private function _login($username, $password){
+
+        $sql = sprintf("SELECT password FROM users WHERE username = '%s'" , $username);
+
+        if ($result = $this->conn->query($sql)) {
+
+            if ($result->num_rows == 1) {
+
+                $fetched_password = $result->fetch_assoc()["password"];
+                if ($password === $fetched_password){
+                    return 1;
+                }
+                
+            }
+        }
+
+        return 0;
+    }
+
+    function login($username, $password){
+        if($this->_login($username, $password) === 1){
+            return "Logined!";
+        }else{
+            return "Login failed!";
+        }
+        
+    }
+}
+```
