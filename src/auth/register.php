@@ -154,7 +154,8 @@
                                                             $password,
                                                             $password2,
                                                             $email);
-                
+                                                            
+                // Second part : dynamic check (check the data from database)
                 if ($error_msg == ""){
                     
                     echo $register_helper->register($username, $password, $email);
@@ -162,7 +163,7 @@
                     echo $error_msg;
                 }
                 echo "</h3>";
-                // Second part : dynamic check (check the data from database)
+                
             }
         ?>
     </body>
