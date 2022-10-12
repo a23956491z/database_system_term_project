@@ -6,6 +6,10 @@ In order to containerize our application and make it easy to develope and deploy
 
 We omit the trival docker install part in this report due to my docker already installed in my local in the time I start this project.
 
+
+[Dockerized php apache and mysql container](https://www.section.io/engineering-education/dockerized-php-apache-and-mysql-container-development-environment/)
+
+# Setting up environment
 ## Basic PHP with docker
 
 By define `docker-compose.yml`, we can use docker-compose to start docker container and bind the volumes in container to our disk.
@@ -188,3 +192,36 @@ foreach ($users as $user) {
 ```
 
 ![](https://i.imgur.com/hs8vOPS.png)
+
+
+# Constructing PHP part
+
+## Auth : Register 
+
+We create a php file `/auth/register.php` to handle registering.
+We write a simple form to get register data.
+```html
+<h1>This is the Register page</h1>
+
+<form  action="register.php" method="post">
+  Username: <input type="text" name="username"> <br>
+  Password: <input type="password" name="password"> <br>
+  Repeat Password: <input type="password" name="repeat_password"> <br>
+  Email: <input type="text" name="email"> <br>
+  <input type="submit">
+</form>
+
+<h1>Your data</h1>
+```
+
+use `$_POST` to get the POST request from the user filled form .
+```php
+echo "username:".($_POST["username"]                ?? "" )."<br>";
+echo "password:".($_POST["password"]                ?? "" )."<br>";
+echo "repeat_password:".($POST["repeat_password"]   ?? "" )."<br>";
+echo "email:".($_POST["email"]                      ?? "" )."<br>";
+
+```
+
+So our register page is look like this currently.
+![](https://i.imgur.com/yHG4Uu1.png)

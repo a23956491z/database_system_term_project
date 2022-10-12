@@ -9,3 +9,6 @@ AH00558: apache2: Could not reliably determine the server's fully qualified doma
 AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.26.0.3. Set the 'ServerName' directive globally to suppress this message
 [Sun Oct 09 05:47:24.078443 2022] [mpm_prefork:notice] [pid 1] AH00163: Apache/2.4.54 (Debian) PHP/8.0.24 configured -- resuming normal operations
 [Sun Oct 09 05:47:24.078553 2022] [core:notice] [pid 1] AH00094: Command line: 'apache2 -D FOREGROUND'
+[Mon Oct 10 10:05:08.150935 2022] [php:error] [pid 20] [client 172.26.0.1:47052] script '/var/www/html/login.php' not found or unable to stat
+[Mon Oct 10 10:10:18.227117 2022] [php:error] [pid 20] [client 172.26.0.1:34358] script '/var/www/html/auth/welcome.php' not found or unable to stat, referer: http://127.0.0.1:8000/auth/register.php
+[Mon Oct 10 10:11:52.961182 2022] [php:error] [pid 21] [client 172.26.0.1:44958] script '/var/www/html/auth/welcome.php' not found or unable to stat, referer: http://127.0.0.1:8000/auth/register.php
