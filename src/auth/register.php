@@ -111,6 +111,10 @@
 
         
     }
+
+
+
+
 ?>
 
 <!DOCTYPE html>
@@ -135,9 +139,9 @@
         </form>
 
         <?php
- 
+
             $register_helper = new Register();
-            
+                        
             // if there is any post data
             if (!empty($_POST))
             {
@@ -146,11 +150,7 @@
                 $password = $_POST["password"] ?? "" ;
                 $password2= $_POST["repeat_password"]   ?? "" ;
                 $email     = $_POST["email"]    ?? "" ;
-    
-                // echo "username:".($username)."<br>";
-                // echo "password:".($password)."<br>";
-                // echo "repeat_password:".($password2)."<br>";
-                // echo "email:".($email)."<br>";
+
                 echo "<br><h3>";
 
                 // First part : static check

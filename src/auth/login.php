@@ -18,25 +18,26 @@
 
         private function _login($username, $password){
 
-            $sql = sprintf("SELECT password FROM users WHERE username = '%s' AND password = '%s'" , $username, $password);
+            $sql = sprintf("SELECT id FROM users WHERE username = '%s' AND password = '%s'" , $username, $password);
 
             if ($result = $this->conn->query($sql)) {
 
                 if ($result->num_rows == 1) {
 
-                        return 1;
+                        return $result->fetch_array(MYSQLI_NUM)[0];
                     }
                     
                 
             }
+    
 
             return 0;
         }
 
         function login($username, $password){
-            if($this->_login($username, $password) === 1){
+            if($user_id = $this->_login($username, $password) !== 0){
 
-                $this->login_session->set_to_login($username);
+                $this->login_session->set_to_login($username, $user_id);
                 
                 meta_redirect();
                 return "Logined!";
@@ -46,6 +47,10 @@
             
         }
     }
+
+
+
+
 ?>
 
 
@@ -65,22 +70,21 @@
             <input type="submit"> <a href="/auth/register.php"> Register </a>
         </form>
 
-
         <?php
-            $login_helper = new Login($login_session);
+                $login_helper = new Login($login_session);
 
-            if (!empty($_POST))
-            {
+                if (!empty($_POST))
+                {
 
-                $username = $_POST["username"] ?? "" ;
-                $password = $_POST["password"] ?? "" ;
-                
-                echo "<h1>";
-                $login_msg = $login_helper->login($username, $password);
-                echo $login_msg;
-                echo "</h1>";
+                    $username = $_POST["username"] ?? "" ;
+                    $password = $_POST["password"] ?? "" ;
+                    
+                    echo "<h1>";
+                    $login_msg = $login_helper->login($username, $password);
+                    echo $login_msg;
+                    echo "</h1>";
 
-            }
+                }
         ?>
     </body>
 </html>
