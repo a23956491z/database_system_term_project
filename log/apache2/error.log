@@ -12,3 +12,10 @@ AH00558: apache2: Could not reliably determine the server's fully qualified doma
 [Mon Oct 10 10:05:08.150935 2022] [php:error] [pid 20] [client 172.26.0.1:47052] script '/var/www/html/login.php' not found or unable to stat
 [Mon Oct 10 10:10:18.227117 2022] [php:error] [pid 20] [client 172.26.0.1:34358] script '/var/www/html/auth/welcome.php' not found or unable to stat, referer: http://127.0.0.1:8000/auth/register.php
 [Mon Oct 10 10:11:52.961182 2022] [php:error] [pid 21] [client 172.26.0.1:44958] script '/var/www/html/auth/welcome.php' not found or unable to stat, referer: http://127.0.0.1:8000/auth/register.php
+[Wed Oct 12 15:22:45.153561 2022] [php:error] [pid 18] [client 172.26.0.1:39670] script '/var/www/html/auth/index.php' not found or unable to stat
+[Wed Oct 12 15:36:16.114621 2022] [php:error] [pid 20] [client 172.26.0.1:41712] script '/var/www/html/logout.php' not found or unable to stat
+[Wed Oct 12 15:36:22.885548 2022] [php:error] [pid 21] [client 172.26.0.1:35960] script '/var/www/html/auth/index.php' not found or unable to stat
+[Sun Oct 16 13:41:37.990845 2022] [mpm_prefork:notice] [pid 1] AH00170: caught SIGWINCH, shutting down gracefully
+AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.26.0.4. Set the 'ServerName' directive globally to suppress this message
+[Mon Oct 17 01:36:07.948588 2022] [mpm_prefork:notice] [pid 1] AH00163: Apache/2.4.54 (Debian) PHP/8.0.24 configured -- resuming normal operations
+[Mon Oct 17 01:36:07.948621 2022] [core:notice] [pid 1] AH00094: Command line: 'apache2 -D FOREGROUND'

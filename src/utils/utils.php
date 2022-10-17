@@ -27,4 +27,14 @@ function connect_to_db(){
 
     return $conn;
 }
+
+function redirect($url, $statusCode = 303)
+{
+    header('Location: ' . $url, true, $statusCode);
+    die();
+}
+
+function meta_redirect($URL= "/index.php"){
+    echo sprintf("<meta http-equiv='refresh' content='0; URL=%s'>", $URL);
+}
 ?>

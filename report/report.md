@@ -414,3 +414,34 @@ class Login{
     }
 }
 ```
+
+
+### Sessions to stay login
+
+
+### Redirect page by login session
+
+
+### To prevent SQL injections
+
+#### potential vulnerabilities from SQL injection  
+
+This is the code we validate the user credential in our login php file.
+```php
+$sql = sprintf("SELECT username FROM users WHERE username = '%s'" , $username);
+```
+
+We use a very common injection payload `' or 'x'='x` to bypass the authentication to get a logined sessionID to exploit other authenticated information.
+![](https://i.imgur.com/rawsr2f.png)
+![](https://i.imgur.com/ORxleFr.png)
+
+
+With logined sessionID we can further dump out the system info and even the whole data table without credential of admin.
+
+This is the system info we got from sql injection to our login page.
+![](https://i.imgur.com/qNAEt9X.png)
+
+We dump the whole `users` table by sql injection.
+![](https://i.imgur.com/IuCma8j.png)
+
+#### Protection to the authentication system

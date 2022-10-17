@@ -1,5 +1,11 @@
 <?php
     include '../utils/utils.php';
+    include 'session.php';
+    
+    $login_session = new Login_Session();
+    if(!empty($login_session->get_user())){
+        redirect("/index.php");
+    }
 
     Class Register{
 
