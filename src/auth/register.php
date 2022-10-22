@@ -42,8 +42,12 @@
         }
         
         private function _register($username, $password, $email){
+
+            // we hashed the password here 
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
             $sql = sprintf("INSERT INTO users(username, password, email) VALUES('%s', '%s', '%s')",
-                        $username, $password, $email);
+                        $username, $hashed_password, $email);
             
             if ($this->conn->query($sql) === TRUE){
                 echo $this->sucessful_msg;

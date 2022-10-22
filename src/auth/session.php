@@ -6,7 +6,6 @@ class Login_Session{
     function __construct()
     {
         session_start();
-        // echo '<pre>'; print_r($_SESSION); echo '</pre>';
     }
 
     function set_to_login($user, $id){

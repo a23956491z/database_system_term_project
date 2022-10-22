@@ -17,14 +17,26 @@
         }
 
         private function _login($username, $password){
-
-            $sql = sprintf("SELECT id FROM users WHERE username = '%s' AND password = '%s'" , $username, $password);
-
+            
+            // this is insanely bad practice
+            // because we sent the user-typed unhashed password in request
+            // $sql = sprintf("SELECT id FROM users WHERE username = '%s' AND password = '%s'" , $username, $password);
+            
+            $sql = sprintf("SELECT id,password FROM users WHERE username = '%s'" , $username);
+            
             if ($result = $this->conn->query($sql)) {
 
                 if ($result->num_rows == 1) {
 
-                        return $result->fetch_array(MYSQLI_NUM)[0];
+                        $result_arr = $result->fetch_array( MYSQLI_ASSOC);
+                        
+                        if(password_verify($password, $result_arr["password"])){
+                            
+                            return $result_arr["id"];
+                        }
+                        ;
+                        // return $result_arr[0];
+                        
                     }
                     
                 

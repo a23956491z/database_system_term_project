@@ -213,7 +213,7 @@ The SQL query to create the table is this
 CREATE TABLE users (
   id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(30) NOT NULL,
-  password VARCHAR(30) NOT NULL,
+  password VARCHAR(90) NOT NULL,
   email VARCHAR(50) NOT NULL,
   reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
@@ -310,7 +310,7 @@ We do following check before insert the user data into database.
 * Check the email is exists or not.
 
 After these checks are passed, we can finally insert the user data into the database.
-```php
+```php 
 Class Register{
 
     private $conn;
@@ -365,8 +365,26 @@ Class Register{
     }
 ```
 
+
+
 A sample of error message may look like this.
 ![](https://i.imgur.com/INsDKu6.png)
+
+### Provide basic security of password with hash
+To prevent our databased get hacked and hacker can directly get all users' password.
+We can hashed the password before we sent the register request. The password in database is also store in hashed form, 
+so that even hacker can get the data in database. The hacker still have to crack the hashed password to get the clear password.
+
+However, Man In The Middle (MITM) attack can still get the password in the request client sent. We would add TLS support after we publish the website later to pathc out this vulnerability.
+
+We can change the `_register` function a little bit by adding the `password_hash()` function
+```php
+$hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+$sql = sprintf("INSERT INTO users(username, password, email) VALUES('%s', '%s', '%s')",
+            $username, $hashed_password, $email);
+```
+
 
 ## Auth : Login
 
@@ -376,6 +394,8 @@ This class is similar to the `Register` class but without check function.
 We select the password field by username in table and check the password is equal to the password user submited.
 
 In these page, we only show the login is success or not without provide the detail error message.
+
+Note: This exmaple still use unhashed password in database.
 ```php
 class Login{
 
@@ -415,6 +435,17 @@ class Login{
 }
 ```
 
+### Verify with hashed password
+
+with a little change, we can use `password_verify` instead of put password into where clause in SQL query.
+```php
+$result_arr = $result->fetch_array( MYSQLI_ASSOC);
+
+if(password_verify($password, $result_arr["password"])){
+    
+    return $result_arr["id"];
+}
+```
 
 ### Sessions to stay login
 
