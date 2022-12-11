@@ -22,8 +22,8 @@
             // because we sent the user-typed unhashed password in request
             // $sql = sprintf("SELECT id FROM users WHERE username = '%s' AND password = '%s'" , $username, $password);
             
-            $sql = sprintf("SELECT id,password FROM users WHERE username = '%s'" , $username);
-            
+            $sql = sprintf("SELECT id,password FROM users WHERE username = '%s'" , ( $this->conn->real_escape_string($username)));
+
             if ($result = $this->conn->query($sql)) {
 
                 if ($result->num_rows == 1) {
@@ -47,7 +47,7 @@
         }
 
         function login($username, $password){
-            if($user_id = $this->_login($username, $password) !== 0){
+            if( ($user_id = $this->_login($username, $password) ) !== 0){
 
                 $this->login_session->set_to_login($username, $user_id);
                 

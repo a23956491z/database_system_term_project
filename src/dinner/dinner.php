@@ -1,8 +1,9 @@
 <?php
-    include '../utils/utils.php';
+    include_once '../utils/utils.php';
 class Dinner{
 
     private $conn;
+    private $dinner_array;
     function __construct(){
         $this->conn  = connect_to_db();
     }
@@ -25,8 +26,19 @@ class Dinner{
 
         return $tags;
     }
+
+    function _get_dinner($dinner){
+        $sql = sprintf("SELECT dinner.id, name, users.username, users.id as uid FROM dinner LEFT JOIN users ON dinner.author=users.id WHERE dinner.id='%s'", $dinner );
+        $result = $this->conn->query($sql);
+
+        if($result->num_rows > 0){
+            $row = $result->fetch_assoc();
+
+            return $row;
+        }
+    }
     function get_dinners(){
-        $sql = sprintf("SELECT dinner.id, name, users.username, users.id as uid FROM dinner INNER JOIN users ON dinner.author=users.id" );
+        $sql = sprintf("SELECT dinner.id, name, users.username, users.id as uid FROM dinner LEFT JOIN users ON dinner.author=users.id" );
 
         $result = $this->conn->query($sql);
         
@@ -49,11 +61,12 @@ class Dinner{
             }
             $result_dic['status'] = "successful";
             $result_dic['response'] = $result_array; 
-                
+            $dinner_array = $result_array;
 
         }else{
 
             $result_dic['status'] = "fail or no result";
+            $result_dic['response'] = "";
             
         }
         // encode array to json with utf8 support
@@ -101,6 +114,80 @@ class Dinner{
             $tag_id = $this->check_and_insert_tag($tag); 
             $this->_insert_dinner_tag($dinner_id, $tag_id);   
         }
+    }
+
+    function update_dinner($data){
+        
+        
+
+    }
+
+    // INSERT INTO dinner (name, author) VALUES ("TO_BE_DELETED", 3) ;
+    // $dinner is dinner id
+    function _delete_dinner($dinner){
+
+        // DELETE FROM dinner WHERE id = 9
+        $sql = sprintf("DELETE FROM dinner WHERE id = $dinner");
+
+        $this->conn->query($sql);
+
+    }
+    function delete_dinner($data){
+
+        $user = $data["user"];
+        $dinner = $data["dinner"];
+
+        
+        $result_dic = array();
+
+        if(empty($dinner_array)){
+            $dinner_res = json_decode($this->get_dinners());
+            $dinner_data = $dinner_res->response;
+            if (!empty($dinner_data)){
+                $this->dinner_array = $dinner_data;
+
+            }else{
+                $result_dic["status"] = "Fetch dinner failed";
+
+                return json_encode($result_dic, JSON_UNESCAPED_UNICODE);
+            }
+
+        }
+
+
+        // print_r( $this->dinner_array);
+
+
+        $dinner_by_id = $this->_get_dinner($dinner);
+        $dinner_uid = $dinner_by_id["uid"] ?? null;
+
+        // echo "dinner id : ",$dinner, "<br/>";
+        // echo "user id : ", $user, "<br/>";
+        // var_dump($dinner_uid === $user);
+        // echo "EQUAL : ", ($dinner_uid===$user), " UID:CID ", $dinner_uid, " : ", $user, "<br/>";
+
+        if(empty($dinner_by_id)){
+            $result_dic["status"] =  "DINNER not found";
+            
+        }else{
+
+            if ($dinner_uid == $user){
+                $this->_delete_dinner($dinner);
+
+                $result_dic["status"] = "successful";
+            }else{
+    
+                $result_dic["status"] = "permission deny";
+            }
+        }
+        // print_r($dinner_by_id);
+        // echo "dinner author : ", 
+        // $this->_delete_dinner($data);
+
+
+
+        $response_json = json_encode($result_dic, JSON_UNESCAPED_UNICODE);
+        return $response_json;
     }
 }
 

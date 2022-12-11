@@ -28,6 +28,9 @@ class Login_Session{
         return "";
     }
 
+    function is_user($id){
+        return $id == $this->get_user_id();
+    }
     function set_to_logout(){
         unset($_SESSION['user']);
         unset($_SESSION['user_id']);

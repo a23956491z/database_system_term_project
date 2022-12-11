@@ -6,10 +6,10 @@ In order to containerize our application and make it easy to develope and deploy
 
 We omit the trival docker install part in this report due to my docker already installed in my local in the time I start this project.
 
-
 [Dockerized php apache and mysql container](https://www.section.io/engineering-education/dockerized-php-apache-and-mysql-container-development-environment/)
 
 # Setting up environment
+
 ## Basic PHP with docker
 
 By define `docker-compose.yml`, we can use docker-compose to start docker container and bind the volumes in container to our disk.
@@ -157,8 +157,7 @@ insert into `users` (username, password) values
 
 ![](https://i.imgur.com/UlgusTa.png)
 
-
-We add extra database name in `mysqli` statement. And simply use `$result = $conn->query($sql)` to execute the SQL query storing result in `$result`. After that use `foreach` and `echo` to print out the result. 
+We add extra database name in `mysqli` statement. And simply use `$result = $conn->query($sql)` to execute the SQL query storing result in `$result`. After that use `foreach` and `echo` to print out the result.
 
 ```php
 //These are the defined authentication environment in the db service
@@ -193,15 +192,16 @@ foreach ($users as $user) {
 
 ![](https://i.imgur.com/hs8vOPS.png)
 
-
 # Constructing PHP part
 
 ## Auth : Database
+
 ### Database with user data
 
 To store the data of this web app, we create a database call `dinner_picker` in mysql.
 
 The first table of this database is `user` table with following attributes:
+
 * User id : unsigned int with auto increament which is also a **primary key**
 * Username : varchar with max length 30 and **cannot be null**
 * Password : varchar with max length 30 and **cannot be null**
@@ -209,6 +209,7 @@ The first table of this database is `user` table with following attributes:
 * Register date : with CURRENT_TIMESTAMP when create the account.
 
 The SQL query to create the table is this
+
 ```sql
 CREATE TABLE users (
   id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -222,16 +223,19 @@ CREATE TABLE users (
 Before we interact with database, we should create a account for this web app to access the db data.
 
 We add a user named "web_basic_client" to operate the login and register function in phpmyadmin interface.
-This user have permission with `SELECT` and `INSERT` to data table.
+This user have permission with `SELECT` and `INSERT` to data table. We only grant very limit permissions for this user to prevent potential high privileges operation  by SQL injection like change admin password or exploit the vulnerability
+
+of database itself.
 
 ![](https://i.imgur.com/RodV2Gg.png)
 
-## Auth : Register 
-
+## Auth : Register
 
 ### Basic form and POST
+
 We create a php file `/auth/register.php` to handle registering.
 We write a simple form to get register data.
+
 ```html
 <h1>This is the Register page</h1>
 
@@ -247,6 +251,7 @@ We write a simple form to get register data.
 ```
 
 use `$_POST` to get the POST request from the user filled form .
+
 ```php
 echo "username:".($_POST["username"]                ?? "" )."<br>";
 echo "password:".($_POST["password"]                ?? "" )."<br>";
@@ -260,8 +265,8 @@ So our register page is look like this currently.
 
 ### Check with field data
 
-
 We do the following check to our field data before send the data to database.
+
 * Check the field `username` is empty or not
 * Check the field `password_1` and `password_2` is empty or not
 * Check the field `email` is empty or not
@@ -269,7 +274,7 @@ We do the following check to our field data before send the data to database.
 
 ```php
 function register_data_static_check($username, $password_1, $password_2, $email){
-    
+  
     $define_error_msg["PASSWORD_NOT_MATCH"] = "Password and Repeat Password didn't match.";
     $define_error_msg["PASSWORD_EMPTY"] = "Password field is empty !";
     $define_error_msg["USERNAME_EMPTY"] = "Username field is empty !";
@@ -300,17 +305,16 @@ function register_data_static_check($username, $password_1, $password_2, $email)
 A sample of error message might look like this.
 ![](https://i.imgur.com/0ILtWBs.png)
 
-
-
 ### Check exsitance of data in database
 
-
 We do following check before insert the user data into database.
+
 * Check the username is exists or not.
 * Check the email is exists or not.
 
 After these checks are passed, we can finally insert the user data into the database.
-```php 
+
+```php
 Class Register{
 
     private $conn;
@@ -344,11 +348,11 @@ Class Register{
         }
         return $this->failed_msg;
     }
-    
+  
     private function _register($username, $password, $email){
         $sql = sprintf("INSERT INTO users(username, password, email) VALUES('%s', '%s', '%s')",
                     $username, $password, $email);
-        
+  
         if ($this->conn->query($sql) === TRUE){
             echo $this->sucessful_msg;
         }
@@ -357,7 +361,7 @@ Class Register{
     function __construct() {
         $this->check_state = 0;
         $this->conn = connect_to_db();
-        
+  
         $this->define_error_msg["USERNAME_EXIST"] = "Username is already exists.";
         $this->define_error_msg["EMAIL_EXIST"] = "Email is aleardy exists..";
         $this->sucessful_msg = "Register Sucessfully !";
@@ -365,26 +369,25 @@ Class Register{
     }
 ```
 
-
-
 A sample of error message may look like this.
 ![](https://i.imgur.com/INsDKu6.png)
 
 ### Provide basic security of password with hash
+
 To prevent our databased get hacked and hacker can directly get all users' password.
-We can hashed the password before we sent the register request. The password in database is also store in hashed form, 
+We can hashed the password before we sent the register request. The password in database is also store in hashed form,
 so that even hacker can get the data in database. The hacker still have to crack the hashed password to get the clear password.
 
 However, Man In The Middle (MITM) attack can still get the password in the request client sent. We would add TLS support after we publish the website later to pathc out this vulnerability.
 
 We can change the `_register` function a little bit by adding the `password_hash()` function
+
 ```php
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
 $sql = sprintf("INSERT INTO users(username, password, email) VALUES('%s', '%s', '%s')",
             $username, $hashed_password, $email);
 ```
-
 
 ## Auth : Login
 
@@ -396,6 +399,7 @@ We select the password field by username in table and check the password is equa
 In these page, we only show the login is success or not without provide the detail error message.
 
 Note: This exmaple still use unhashed password in database.
+
 ```php
 class Login{
 
@@ -417,7 +421,7 @@ class Login{
                 if ($password === $fetched_password){
                     return 1;
                 }
-                
+      
             }
         }
 
@@ -430,7 +434,7 @@ class Login{
         }else{
             return "Login failed!";
         }
-        
+  
     }
 }
 ```
@@ -438,26 +442,91 @@ class Login{
 ### Verify with hashed password
 
 with a little change, we can use `password_verify` instead of put password into where clause in SQL query.
+
 ```php
 $result_arr = $result->fetch_array( MYSQLI_ASSOC);
 
 if(password_verify($password, $result_arr["password"])){
-    
+  
     return $result_arr["id"];
 }
 ```
 
 ### Sessions to stay login
 
+By create  Login_Session object in first part of our php code, we can `session_start();` and use member function to get user info in session.
+
+```php
+class Login_Session{
+
+    function __construct()
+    {
+        session_start();
+    }
+
+    function set_to_login($user, $id){
+
+        $_SESSION['user'] = $user;
+        $_SESSION['user_id'] = $id;
+    }
+    function get_user(){
+        if (isset($_SESSION['user'])){
+  
+            return $_SESSION['user'];
+        }
+        return "";
+    }
+    function get_user_id(){
+        if (isset($_SESSION['user_id'])){
+  
+            return $_SESSION['user_id'];
+        }
+        return "";
+    }
+
+    function set_to_logout(){
+        unset($_SESSION['user']);
+        unset($_SESSION['user_id']);
+    }
+}
+```
 
 ### Redirect page by login session
 
+we define 2 function to do the page redirection.
+First one is adding `Location` in header before any render & output on the page.
+Second one is using meta-header with page refresh to do redirection which is a little bit slower than the first one.
+
+```php
+function redirect($url, $statusCode = 303)
+{
+    header('Location: ' . $url, true, $statusCode);
+    die();
+}
+
+function meta_redirect($URL= "/index.php"){
+    echo sprintf("<meta http-equiv='refresh' content='0; URL=%s'>", $URL);
+}
+```
+
+After define our redirect function, we can check if the user has been record in session.
+Redirecting the page if a logined user is trying to visit login or register page.
+
+Exmaple: in `login.php` or `register.php`
+
+```php
+$login_session = new Login_Session();
+if(!empty($login_session->get_user())){
+    redirect("/index.php");
+}
+```
 
 ### To prevent SQL injections
 
-#### potential vulnerabilities from SQL injection  
+#### potential vulnerabilities from SQL injection
 
 This is the code we validate the user credential in our login php file.
+
 ```php
 $sql = sprintf("SELECT username FROM users WHERE username = '%s'" , $username);
 ```
@@ -465,7 +534,6 @@ $sql = sprintf("SELECT username FROM users WHERE username = '%s'" , $username);
 We use a very common injection payload `' or 'x'='x` to bypass the authentication to get a logined sessionID to exploit other authenticated information.
 ![](https://i.imgur.com/rawsr2f.png)
 ![](https://i.imgur.com/ORxleFr.png)
-
 
 With logined sessionID we can further dump out the system info and even the whole data table without credential of admin.
 
@@ -476,3 +544,74 @@ We dump the whole `users` table by sql injection.
 ![](https://i.imgur.com/IuCma8j.png)
 
 #### Protection to the authentication system
+
+A SQL query like this can easily operate auth-by-pass injection like `' or ''-'` or `' or 'x'='x`
+
+```php
+$sql = sprintf("SELECT id FROM users WHERE username = '%s', password = 'password'" , $username, $password);
+```
+
+However, the modified version like this can be prevent the common auth-by-pass injection but not for any type of injections.
+
+```php
+$sql = sprintf("SELECT id,password FROM users WHERE username = '%s'" , ( $username));
+
+if ($result = $this->conn->query($sql)) {
+
+    if ($result->num_rows == 1) {
+
+            $result_arr = $result->fetch_array( MYSQLI_ASSOC);
+    
+            if(password_verify($password, $result_arr["password"])){
+        
+                return $result_arr["id"];
+            }
+            ;
+            // return $result_arr[0];
+    
+        }
+  
+  
+}
+```
+
+`mysqli_real_escape_string`
+
+### Dinner CRUD
+
+#### Dinner & Tag Schema
+
+~~~sql
+CREATE TABLE dinner (
+id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL,
+author INT(6) ,
+CONSTRAINT DINNER_AUTHOR_ID_FK FOREIGN KEY (author) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE, 
+create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+~~~
+
+~~~sql
+CREATE TABLE tag (
+id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+name VARCHAR(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_zh_0900_as_cs NOT NULL
+)
+~~~
+
+~~~sql
+CREATE TABLE dinner_tag (
+id INT(10) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+dinner INT(6) UNSIGNED NOT NULL,
+tag INT(6) UNSIGNED NOT NULL,
+FOREIGN KEY (dinner) REFERENCES dinner(id) ON DELETE CASCADE ON UPDATE CASCADE, 
+FOREIGN KEY (tag) REFERENCES tag(id) ON DELETE CASCADE ON UPDATE CASCADE
+)
+~~~
+
+#### Create
+
+#### Read
+
+#### Update
+
+#### Delete
