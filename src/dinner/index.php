@@ -65,17 +65,18 @@
 
 
                     $delete_button = sprintf('<a href="/dinner/delete.php?id=%s">Delete</a>', $d->id);
+                    $update_button = sprintf('<a href="/dinner/update.php?id=%s">Update</a>', $d->id);
                     echo sprintf(
                         "
                         <td>%s</td>
                         <td>%s</td>
                         <td>%s</td>
-                        <td>%s</td>
+                        <td>%s %s</td>
                         ", 
                         $d->dinner, 
                         $d->username, 
                         implode(", ", $d->tags),
-                        $delete_button);
+                        $delete_button, $update_button);
                     echo "</tr>";
                 }
 

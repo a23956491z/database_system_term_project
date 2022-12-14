@@ -198,6 +198,9 @@ foreach ($users as $user) {
 
 ### Database with user data
 
+![](https://i.imgur.com/QzeZ2wC.png)
+
+
 To store the data of this web app, we create a database call `dinner_picker` in mysql.
 
 The first table of this database is `user` table with following attributes:
@@ -577,9 +580,12 @@ if ($result = $this->conn->query($sql)) {
 
 `mysqli_real_escape_string`
 
-### Dinner CRUD
+## Dinner CRUD
 
-#### Dinner & Tag Schema
+### Dinner & Tag Schema
+
+![](https://i.imgur.com/iMlXiON.png)
+
 
 ~~~sql
 CREATE TABLE dinner (
@@ -608,10 +614,534 @@ FOREIGN KEY (tag) REFERENCES tag(id) ON DELETE CASCADE ON UPDATE CASCADE
 )
 ~~~
 
-#### Create
+### A basic Dinner Object
 
-#### Read
+Connect to MySQL in Dinner class constructor.
+```php
+class Dinner{
 
-#### Update
+	private $conn;
+	private $dinner_array;
+	
+	function __construct(){
+		$this->conn = connect_to_db();
+	
+	}
 
-#### Delete
+}
+```
+
+### Create
+
+Here comes the first function, we insert the dinner name & author into dinner table.
+```php
+// return the inserted dinner id
+function _insert_dinner($dinner, $user){
+	
+	$sql = sprintf("INSERT INTO dinner (name, author) VALUES ('%s', '%s')", $dinner, $user);
+	$this->conn->query($sql);
+
+	return $this->conn->insert_id;
+}
+```
+
+Later we insert tag into tag table. To prevent we insert the dulplicated rows we can check the tag if exists in tag table or not.
+```php
+// this function always return a tag id
+// if the tag is not exist, this function would insert that tag into database.
+function check_and_insert_tag($tag){
+
+	$sql = sprintf("SELECT id FROM tag WHERE name='%s'", $tag );
+	$result = $this->conn->query($sql);
+
+	if($result->num_rows > 0){
+	
+		return $result->fetch_array(MYSQLI_NUM)[0];
+	}
+
+	$sql =sprintf("INSERT INTO tag (name) VALUES ('%s')", $tag );
+	$this->conn->query($sql);
+
+	return $this->conn->insert_id;
+}
+```
+
+But after I finished this function, I found we can use `INSERT IGNORE` to prevent dulplicates.
+
+And we can build the dinner-tag relation to implement many-to-many relation. 
+```php
+function _insert_dinner_tag($dinner, $tag){
+
+	$sql = sprintf("INSERT INTO dinner_tag (dinner, tag) VALUES ('%s', '%s')", $dinner, $tag);
+
+	$this->conn->query($sql);
+}
+```
+
+
+Finally we can compose these sub-function to final insert_dinner function.
+```php
+function insert_dinner($data){
+
+	// insert dinner with user and name
+	$dinner_id = $this->_insert_dinner($data["name"], $data["user"]);
+
+	// insert dinner-tag with dinner id and tag id
+	foreach ($data["tags"] as &$tag){
+
+		$tag_id = $this->check_and_insert_tag($tag);
+		$this->_insert_dinner_tag($dinner_id, $tag_id);
+	}
+}
+```
+
+And we can use the `insert_dinner` function in `/dinner/insert.php`.
+User can submit the insert form first and the PHP page gets POST request to start using `explode` and `implode` to process the tags string to tag array.
+```php
+<?php
+
+include 'dinner.php';
+include '../auth/session.php';
+
+$login_session = new Login_Session();
+if(empty($login_session->get_user())){
+	redirect("/auth/login.php");
+}
+?>
+
+  
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Create Dinner</title>
+</head>
+<body>
+<h1>Create!</h1>
+<form action="insert.php" method="post">
+	<div>
+		<span>Dinner name </span><input type="text" name="name" required>
+	</div>
+	<div>
+		<span>Tages </span><input type="text" name="tags">
+	</div>
+		<button type="submit" name="submit">Submit</button>
+</form>
+
+<?php
+
+	$user = $login_session->get_user();
+	$user_id = $login_session->get_user_id();
+
+	if(empty($user)){
+		redirect("/auth/login.php");
+	}
+
+	echo "<h1>Hi! User : ". $user. " with id : ". $user_id ."</h1>";
+
+	if (!empty($_POST)){
+  
+		$tags = explode(",", $_POST["tags"]);
+		$tags = array_map('trim', $tags);
+		echo implode(' | ', $tags);
+
+		$data = array(
+
+			'name' => $_POST["name"],
+			'tags' => $tags,
+			'user' => $user_id
+		);
+
+		$dinner = new Dinner();
+		$dinner->insert_dinner($data);
+		meta_redirect("/dinner/index.php");
+	}
+?>
+
+</body>
+</html>
+```
+
+![](https://i.imgur.com/8JL77GH.png)
+
+### Read
+
+We can get a array contains the name of tags queued by dinner id. 
+```php
+// return a array with strings 
+function get_tags($dinner_id){
+
+	$sql = sprintf("SELECT * FROM dinner_tag INNER JOIN tag ON dinner_tag.tag=tag.id WHERE dinner='%s' ", $dinner_id );
+	$result = $this->conn->query($sql);
+	
+	$tags = array();
+	if($result->num_rows > 0){
+
+		while($row = $result->fetch_assoc()){
+
+			array_push($tags, $row["name"]);
+		}
+	}
+
+	return $tags;
+}
+```
+
+After that, we can use `JOIN` to combine dinner and users table to get username. Note the `LEFT JOIN` here to prevet there is null on dinner row so that we won't miss some rows.
+
+Instead return the array, we encode the dictionary to json to make the response more RESTful and decode it later. 
+```php
+function get_dinners(){
+
+	$sql = sprintf("SELECT dinner.id, name, users.username, users.id as uid FROM dinner LEFT JOIN users ON dinner.author=users.id" );
+	$result = $this->conn->query($sql);
+
+	$result_dic = array();
+
+	if($result->num_rows > 0){
+
+		$result_array = array();
+		while($row = $result->fetch_assoc()){
+
+			$tags = $this->get_tags($row["id"]);
+			$row_result["id"] = $row["id"];
+			$row_result["username"] = $row["username"];
+			$row_result["dinner"] = $row["name"];
+			$row_result["tags"] = $tags;
+
+			array_push($result_array, $row_result);
+		}
+		$result_dic['status'] = "successful";
+		$result_dic['response'] = $result_array;
+		$dinner_array = $result_array;
+
+	}else{
+
+		$result_dic['status'] = "fail or no result";
+		$result_dic['response'] = "";
+	}
+
+	// encode array to json with utf8 support
+	$response_json = json_encode($result_dic, JSON_UNESCAPED_UNICODE);
+	return $response_json;
+}
+```
+
+Using the `foreach` to render each `<tr>` in table to dinner information.
+```php
+<?php
+
+	include 'dinner.php';
+	include '../auth/session.php';
+
+	$login_session = new Login_Session();
+	
+	$dinner = new Dinner();
+	$response = $dinner->get_dinners();
+
+	$decoded = json_decode($response);
+	$status = $decoded->status;
+	$data = $decoded->response;
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Dinner</title>
+
+<style>
+table, th, td {
+	border: 1px solid black;
+}
+</style>
+</head>
+
+<body>
+
+	<h1>Dinner!</h1>
+
+<p><a href="/dinner/insert.php">Insert a new dinner</a></p>
+
+  
+<?php
+
+
+	if(!empty($data)){
+		echo "
+		<table>
+		<tr>
+		<th>Dinner</th>
+		<th>Author</th>
+		<th>Tags</th>
+		</tr>
+		";
+
+		foreach($data as &$d){
+
+			echo "<tr>";
+			echo sprintf(
+			"
+			<td>%s</td>
+			<td>%s</td>
+			<td>%s</td>
+			<td>%s %s</td>
+			",
+			$d->dinner,
+			$d->username,
+			implode(", ", $d->tags));
+			echo "</tr>";
+		}
+		echo "<table>";
+	}else{
+	
+		echo "NO RESULT";
+	}
+
+	$user = $login_session->get_user();
+
+	if(!empty($user)){
+
+		echo "USER: ".$user, "<br/>";
+		echo "<br><a href=\"/auth/logout.php\">Logout</a><br/>";
+	}
+	else{
+		echo "<a href=\"/auth/login.php\">Login</a><br/>";
+	}
+?>
+</body>
+</html>
+```
+
+![](https://i.imgur.com/3tpjtZs.png)
+
+### Update
+
+Update the dinner table is simple. We can directly update the name column by id.
+```php
+function _update_dinner($id, $name){
+	
+	$sql = sprintf("UPDATE dinner SET name = '%s' WHERE id = %s ", $name, $id);
+	$this->conn->query($sql);
+}
+```
+
+To rebulit the many-to-many relation without recreate every tag. We delete all dinner-tag dependency by first and and the dependency  one by one later. 
+```php
+function _delete_dinner_tag_with_dinnerID($dinner){
+
+	$sql = sprintf("DELETE FROM dinner_tag WHERE dinner= $dinner");
+	$this->conn->query($sql);
+}
+```
+
+Here we use `foreach` in tags array to create dinner-tag relation. 
+```php
+function update_dinner($data){
+	
+	$id = $data["id"];
+	$tags = $data["tags"];
+	$dinner_name = $data["name"];
+	
+	$this->_update_dinner($id, $dinner_name);
+	$this->_delete_dinner_tag_with_dinnerID($id);
+	
+	foreach($tags as &$tag){
+	
+		$tag_id = $this->check_and_insert_tag($tag);		
+		$this->_insert_dinner_tag($id, $tag_id);
+	}
+}
+```
+
+we can add update & delete button in `dinner/index.php`
+```php
+$delete_button = sprintf('<a href="/dinner/delete.php?id=%s">Delete</a>', $d->id);
+$update_button = sprintf('<a href="/dinner/update.php?id=%s">Update</a>', $d->id);
+```
+
+To update the dinner data, we need the user id match the author's id to authenticate this operation.
+If `$dinner_uid != $user_id` we return `NOT AUTHENTICATED` message.
+```php
+<?php
+
+	include 'dinner.php';
+	include '../auth/session.php';
+	include_once '../utils/utils.php';
+	
+	$login_session = new Login_Session();
+	if(empty($login_session->get_user())){
+	
+		redirect("/auth/login.php");
+	}
+	
+	$user = $login_session->get_user();
+	$user_id = $login_session->get_user_id();
+	$dinner = new Dinner(); 
+		
+	$id = $_GET['id'] ?? null;
+	$valid_dinner_id = False;
+	$status_msg = "";
+	
+	  
+
+	if(isset($id) and isInteger($id) ){
+
+		$dinner_by_id = $dinner->_get_dinner($id);
+		if(empty($dinner_by_id)){
+	
+			$status_msg = "DINNER NOT FOUND";
+		}else{
+
+			$dinner_uid = $dinner_by_id["uid"];
+			if($dinner_uid != $user_id){
+
+				$status_msg = "NOT AUTHENTICATED";
+			}else{
+
+				$dinner_uname = $dinner_by_id["username"];
+				$dinner_name = $dinner_by_id["name"];
+				$dinner_tags = $dinner->get_tags($id);
+
+				$dinner_tags_string = implode(", ", $dinner_tags);
+				echo $dinner_uid, " ", $dinner_uname;
+			}
+		}
+	}else{
+		$status_msg = "NOT VALID";
+	}
+		echo $status_msg;
+?>
+
+  
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Update Dinner</title>
+</head>
+<body>
+<h1>UPDATE!</h1>
+	<div>
+		<a href="/dinner/index.php">BACK</a>
+	</div>
+	<form action="update.php" method="post">
+		<input type="hidden" name="id" value="<?php echo $id ?? "";?>">
+		<div>
+			<span>Dinner name </span><input type="text" name="name" value="<?php echo $dinner_name ?? "";?>" required>
+		</div>
+
+		<div>
+			<span>Tages </span><input type="text" name="tags" value="<?php echo $dinner_tags_string ?? "";?>">
+		</div>
+		<div>
+			<span>Author </span>
+		</div>
+		<button type="submit" name="submit">Submit</button>
+
+	</form>
+
+<?php
+
+	echo "<h1>Hi! User : ". $user. " with id : ". $user_id ."</h1>";
+	if (!empty($_POST)){
+
+		$tags = explode(",", $_POST["tags"]);
+		$tags = array_map('trim', $tags);
+
+		$data = array(
+			'id' => $_POST['id'],
+			'name' => $_POST["name"],
+			'tags' => $tags,
+		);
+
+		$dinner->update_dinner($data);
+		meta_redirect("/dinner/index.php");
+
+	}
+
+?>
+</body>
+</html>
+```
+
+![](https://i.imgur.com/dxh6GZd.png)
+
+### Delete
+
+To delete a dinner row is as simple as update. We can just delete the row by id and deal with the relation later.
+```php
+// INSERT INTO dinner (name, author) VALUES ("TO_BE_DELETED", 3) ;
+// $dinner is dinner id
+function _delete_dinner($dinner){
+
+	$sql = sprintf("DELETE FROM dinner WHERE id = $dinner");
+	$this->conn->query($sql);
+}
+```
+
+
+```php
+function delete_dinner($data){
+
+	$user = $data["user"];
+	$dinner = $data["dinner"];
+
+	$result_dic = array();
+	$dinner_by_id = $this->_get_dinner($dinner);
+	$dinner_uid = $dinner_by_id["uid"] ?? null;
+
+	if(empty($dinner_by_id)){
+
+		$result_dic["status"] = "DINNER not found";
+	}else{
+
+		if ($dinner_uid == $user){
+	
+			$this->_delete_dinner($dinner);
+			$result_dic["status"] = "successful";
+		}else{
+
+			$result_dic["status"] = "permission deny";
+		}
+	}
+
+	$response_json = json_encode($result_dic, JSON_UNESCAPED_UNICODE);
+	return $response_json;
+}
+```
+
+```php
+<?php
+
+	include_once '../utils/utils.php';
+	include_once '../auth/session.php';
+	include_once 'dinner.php';
+
+	$login_session = new Login_Session();
+	$dinner = new Dinner();
+
+	if(isset($_GET['id']) and isInteger($_GET['id']) ){
+		$id = $_GET['id'];
+		$user_id = $login_session->get_user_id();  
+
+		$data = array(
+
+			'dinner' => $id,
+			'user' => $user_id
+		);
+		$decoded_response = json_decode($dinner->delete_dinner($data));
+		$response = $decoded_response->status;
+	}else{
+	
+		$response = "Invalid ID";
+	}
+	$uri_with_parameter = sprintf("/dinner/index.php?response=%s", $response);
+	meta_redirect($uri_with_parameter);
+?>
+```
+
+Because we redirect to dinner index page for all response. So we pass the response message as parameter, for exmaple, `/dinner/index.php?response="permission deny"`
+
+We still need to check the current user is match to author's user id or not to confirm this user has the permission to delete.
+![](https://i.imgur.com/D7s6oFL.png)

@@ -6,16 +6,9 @@
     $login_session = new Login_Session();
     $dinner = new Dinner();
 
-    function isInteger($input){
-        return(ctype_digit(strval($input)));
-    }
 
     if(isset($_GET['id']) and isInteger($_GET['id']) ){
         $id = $_GET['id'];
-
-
-        // echo "ID : ", $id, "<br/>";
-
 
     $user_id = $login_session->get_user_id();
     // echo $user_id, "<br/>";

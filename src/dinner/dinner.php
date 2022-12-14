@@ -90,6 +90,12 @@ class Dinner{
         return $this->conn->insert_id;
 
     }
+
+    function _delete_dinner_tag_with_dinnerID($dinner){
+        $sql = sprintf("DELETE FROM dinner_tag WHERE dinner= $dinner");
+        $this->conn->query($sql);
+
+    }
     function _insert_dinner_tag($dinner, $tag){
         $sql = sprintf("INSERT INTO dinner_tag (dinner, tag) VALUES ('%s', '%s')", $dinner, $tag);
         $this->conn->query($sql);
@@ -100,6 +106,12 @@ class Dinner{
         $this->conn->query($sql);
 
         return $this->conn->insert_id;
+    }
+
+    function _update_dinner($id, $name){
+        $sql = sprintf("UPDATE dinner SET name = '%s' WHERE id = %s ", $name, $id);
+
+        $this->conn->query($sql);
     }
     function insert_dinner($data){
         
@@ -116,9 +128,21 @@ class Dinner{
         }
     }
 
+    
     function update_dinner($data){
         
-        
+        $id = $data["id"];
+        $tags = $data["tags"];
+        $dinner_name = $data["name"];
+
+        $this->_update_dinner($id, $dinner_name);
+        $this->_delete_dinner_tag_with_dinnerID($id);
+
+        foreach($tags as &$tag){
+
+            $tag_id =  $this->check_and_insert_tag($tag);
+            $this->_insert_dinner_tag($id, $tag_id);
+        }
 
     }
 

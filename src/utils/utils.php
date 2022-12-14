@@ -37,4 +37,9 @@ function redirect($url, $statusCode = 303)
 function meta_redirect($URL= "/index.php"){
     echo sprintf("<meta http-equiv='refresh' content='0; URL=%s'>", $URL);
 }
+
+
+function isInteger($input){
+    return(ctype_digit(strval($input)));
+}
 ?>
