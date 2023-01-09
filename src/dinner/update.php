@@ -29,6 +29,12 @@
 
             if($dinner_uid != $user_id){
                 $status_msg = "NOT AUTHENTICATED";
+
+                $response = "permission deny";
+
+                $uri_with_parameter = sprintf("/dinner/index.php?response=%s", $response);
+                redirect($uri_with_parameter);
+            
             }else{
                 
                 $dinner_uname = $dinner_by_id["username"];
@@ -43,7 +49,7 @@
 
         }
     }else{
-        $status_msg = "NOT VALID";
+        // $status_msg = "NOT VALID";
     }
 
     echo $status_msg;
@@ -98,8 +104,28 @@
                     
                 );
 
-                
+                $dinner_by_id = $dinner->_get_dinner($data['id']);
+
+                if(empty($dinner_by_id)){
+                    $status_msg = "DINNER NOT FOUND";
+                    
+                }else{
+                    
+                    $dinner_uid = $dinner_by_id["uid"];
+
+                    if($dinner_uid != $user_id){
+
+
+                    // $dinner->update_dinner($data);
+                        $status_msg = "NOT AUTHENTICATED";
+                        meta_redirect("/dinner/index.php");
+                    }else{
+
                 $dinner->update_dinner($data);
+                    }
+                }
+                
+                
 
                 meta_redirect("/dinner/index.php");
             }

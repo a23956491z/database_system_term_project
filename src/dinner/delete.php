@@ -30,6 +30,6 @@
 }
 
     $uri_with_parameter = sprintf("/dinner/index.php?response=%s", $response);
-    meta_redirect($uri_with_parameter);
+    redirect($uri_with_parameter);
 
 ?>

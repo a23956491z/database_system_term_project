@@ -125,23 +125,64 @@
 <html>
     <head>
         <title>Register</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+   
+
     </head>
 
     <body> 
-
-        <h1>This is the Register page</h1>
+    <div  class="container">
+        
+    <nav class="nav py-3">
+        <a class="nav-link active" href="/dinner/index.php">Home Page</a>
+        <a class="nav-link" href="/report.html">Report</a>
+        <a class="nav-link" href="/figure.html">Diagrams</a>
+        
+ 
+    </nav>
+    
+        <h1>Register!</h1>
         
         <form  action="register.php" method="post">
-
-            Username: <input type="text" name="username"> <br>
-            Password: <input type="password" name="password"> <br>
-            Repeat Password: <input type="password" name="repeat_password"> <br>
-            Email: <input type="text" name="email"> <br>
+            <div class="form-group row">
+                <div class="col">
+                <h3>Username: </h3>
+                </div>
+                <div class="col-8">
+                    <input class="form-control" type="text" name="username">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <h3>Password: </h3> 
+                </div>
+                <div class="col-8">
+                    <input class="form-control" type="password" name="password"> 
+                    </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                <h3>Repeat Password:  </h3>
+                </div>
+                <div class="col-8">
+                    <input class="form-control" type="password" name="repeat_password">
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col">
+                    <h3>Email: </h3>
+                </div>
+                <div class="col-8">
+                    <input class="form-control" type="text" name="email"> <br>
+                </div>
+            </div>
 
         
-            <input type="submit"> <a href="/auth/login.php"> Back to Login</a>  
+            <input type="submit" class="btn btn-primary"> <a href="/auth/login.php" type="class" class="btn btn-secondary"> Back to Login</a>  
         </form>
-
+    
         <?php
 
             $register_helper = new Register();
@@ -174,6 +215,7 @@
                 
             }
         ?>
+    </div>
     </body>
 </html>
 

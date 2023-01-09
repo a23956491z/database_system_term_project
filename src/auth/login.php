@@ -4,7 +4,7 @@
     
     $login_session = new Login_Session();
     if(!empty($login_session->get_user())){
-        redirect("/index.php");
+        redirect("/dinner/index.php");
     }
 
     class Login{
@@ -51,7 +51,7 @@
 
                 $this->login_session->set_to_login($username, $user_id);
                 
-                meta_redirect();
+                meta_redirect("/dinner/index.php");
                 return "Logined!";
             }else{
                 return "Login failed!";
@@ -70,18 +70,57 @@
 <html>
     <head>
         <title>Login</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+   
     </head>
 
     <body> 
+    <div class="container">
+
+    <nav class="nav py-3">
+        <a class="nav-link active" href="/dinner/index.php">Home Page</a>
+        <a class="nav-link" href="/report.html">Report</a>
+        <a class="nav-link" href="/figure.html">Diagrams</a>
+        
+ 
+    </nav>
 
         <h1>Login</h1>
-        <form  action="login.php" method="post">
 
-            Username: <input type="text" name="username"> <br>
-            Password: <input type="password" name="password"> <br>
-            <input type="submit"> <a href="/auth/register.php"> Register </a>
+        <form  action="login.php" method="post">
+            
+                <div class="form-group row py-2">
+                    <div class="col">
+                        <h3>Username: </h3>
+                    </div>
+                    <div class="col-10">
+                        <input   class="form-control" type="text" name="username"> 
+                    </div>
+                </div>
+            
+            <div class="form-group row py-2">
+                <div class="col">
+                    <h3>Password: </h3>
+                </div>
+                <div class="col-10">
+                    <input  class="form-control" type="password" name="password"> 
+                </div>
+            </div>
+
+            <div class="row py-2">
+                <div class="col">
+                <input type="submit" class="btn btn-primary" > <a href="/auth/register.php" type="button" class="btn btn-info"> Register </a> 
+            </div> </div>
+            
         </form>
 
+        <div class="row py-2">
+            <div class="col py-2">
+        <a href="/dinner/index.php" type='button' class='btn btn-secondary'> Back </a> 
+</div>
+        </div>
         <?php
                 $login_helper = new Login($login_session);
 
@@ -98,5 +137,6 @@
 
                 }
         ?>
+    </div>
     </body>
 </html>
